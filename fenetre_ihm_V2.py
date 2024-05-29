@@ -16,6 +16,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import threading
 import time
 from test_mgb import Action
+import fonctions as fct
+import moyenne_qui_marche as mb
 
 
 
@@ -34,15 +36,23 @@ class FenetrePrincipale(tk.Tk):
         self.liste_actions = ["AAPL","AMZN","GOOGL","FB","MSFT","TSLA","V"]
         self.date = []
         self.valeurs = []
+        self.volume = []
+        self.ordonnees_ind = []
+        self.abscisses_ind = []
         self.conseil = "Investir !"
+        self.date1 = []
         self.fiabilite = 0
+        self.periode = 0
         self.temporalite = "jour"
         self.action_choisie = ""
         self.creer_widget()
         self.afficher_courbe()
-        self.timer_thread = threading.Thread(target=self.actualisation_periodique)
-        self.timer_thread.daemon = True
-        self.timer_thread.start()
+        self.timer_thread1 = threading.Thread(target=self.actualisation_periodique)
+        self.timer_thread1.daemon = True
+        self.timer_thread1.start()
+        self.timer_thread2 = threading.Thread(target=self.message_indicateur)
+        self.timer_thread2.daemon = True
+        self.timer_thread2.start()
 
 
     def creer_widget(self) :       
@@ -72,6 +82,7 @@ class FenetrePrincipale(tk.Tk):
 
         self.bouton4 = tk.Button(self, text = "Choisir")
         self.bouton4.grid(row = 3,column = 2)
+        self.bouton4.bind('<Button-1>', self.choix_indicateur)
 
         self.bouton5 = tk.Button(self, text = "Actualiser")
         self.bouton5.bind('<Button-1>',self.actualiser)
@@ -112,13 +123,13 @@ class FenetrePrincipale(tk.Tk):
         self.choix.set("Message")
 
         #création des radiobuttons
-        self.radio1 = tk.Radiobutton(self, text="Indicateur 1", variable=self.choix, value="Indicateur 1")
+        self.radio1 = tk.Radiobutton(self, text= "Moyenne mobile", variable=self.choix, value="Moyenne mobile")
         self.radio1.grid(row= 2, column = 0)
-        self.radio2 = tk.Radiobutton(self, text="Indicateur 2", variable=self.choix, value="Indicateur 2")
+        self.radio2 = tk.Radiobutton(self, text="Moyenne mobile exp", variable=self.choix, value="Moyenne mobile exp")
         self.radio2.grid(row = 2, column = 1)       
-        self.radio3 = tk.Radiobutton(self, text="Indicateur 3", variable=self.choix, value="Indicateur 3")
+        self.radio3 = tk.Radiobutton(self, text="RSI", variable=self.choix, value="RSI")
         self.radio3.grid(row = 3, column = 0)
-        self.radio4 = tk.Radiobutton(self, text="Indicateur 4", variable=self.choix, value="Indicateur 4")
+        self.radio4 = tk.Radiobutton(self, text="Volume", variable=self.choix, value="Volume")
         self.radio4.grid(row = 3, column = 1)
         
     def choix_action (self, event) :
@@ -137,7 +148,37 @@ class FenetrePrincipale(tk.Tk):
         #self.valeurs = donnees_action.val_close
         print(len(self.date))
         print(len(self.valeurs))
+        self.date1 = donnees_action.dates
+        self.volume = donnees_action.val_volume
         self.actualiser("")
+        
+    def choix_indicateur (self,event) :        
+                
+        if self.choix.get() == "Moyenne mobile" :
+            self.periode = int(self.saisie2.get())
+            self.ordonnees_ind, self.abscisses_ind = mb.moyenne_mobile(self.date, self.valeurs, self.periode)
+            
+        elif self.choix.get() == "Moyenne mobile exp" :
+            self.ordonnees_ind = fct.moyenne_mobile_exponentielle(self.valeurs, float(self.saisie2.get()))
+            self.abscisses_ind = self.date
+            
+            if len(self.ordonnees_ind) != len(self.date) :
+                self.date.pop(len(self.date)-1)
+        
+        elif self.choix.get() == "RSI" :
+            self.periode = int(self.saisie2.get())
+            self.abscisses_ind, self.ordonnees_ind = fct.RSI (self.date, self.valeurs, self.periode)
+         
+        elif self.choix.get() == "Volume" :
+            fct.volume_trace(self.date1, self.volume)
+            
+        self.actualiser(event)
+            
+        #else :
+            #self.bouton4.config(text = "Rechoisir")
+            #self.saisie2.insert(0, "Choisir un paramètre valide")
+            
+            
         
 
 
@@ -151,6 +192,8 @@ class FenetrePrincipale(tk.Tk):
         self.figure = plt.Figure(figsize=(5, 4), dpi=100)
         self.ax = self.figure.add_subplot(111)
         self.ax.plot(self.date, self.valeurs)
+        self.ax2 = self.ax.twinx()
+        self.ax2.plot(self.abscisses_ind,self.ordonnees_ind, 'r--')
         self.ax.set_xlabel(f'Date ({self.temporalite})')
         self.ax.set_ylabel('Valeurs ($)')
         #insertion de la figure matplotlib dans un canvas
@@ -179,6 +222,32 @@ class FenetrePrincipale(tk.Tk):
             self.actualiser("")
             time.sleep(60) #attend une minute
 
+    def message_indicateur(self) :
+        message_prec = ""
+        while True :
+            message = self.choix.get()
+            if message == "Moyenne mobile" and message != message_prec :
+                self.saisie2.delete(0,tk.END)
+                self.saisie2.insert(0,"Renseignez la période.")
+                
+            elif message == "Moyenne mobile exp" and message != message_prec:
+                self.saisie2.delete(0,tk.END)
+                self.saisie2.insert(0,"Renseignez le coefficient.")
+                
+            elif message == "RSI" and message != message_prec :
+                self.saisie2.delete(0,tk.END)
+                self.saisie2.insert(0,"Renseignez la période.(9 ou 14")
+             
+            elif message == "Volume" and message != message_prec:
+                self.saisie2.delete(0,tk.END)
+                self.saisie2.insert(0,"Appuyez sur Choisir.")
+            message_prec = message
+                
+            time.sleep(0.01)
+            
+    
+            
+        
 
 
 
