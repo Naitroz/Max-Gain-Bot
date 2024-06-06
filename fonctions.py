@@ -89,12 +89,12 @@ def moyenne_mobile_exponentielle(prix, coef) :
       
 def RSI (date,prix,periode):
     """
-    A partir des données dates et prix, calcul le RSI pour une période de 9 ou 14 jours selon la valeur de periode. 
+    A partir des données dates et prix, calcul le RSI pour une période de 9 ou 14 jours selon la valeur de periode.
 
     Parameters
     ----------
-     liste date et prix 
-     entier : la periode (9 ou 14) 
+     liste date et prix
+     entier : la periode (9 ou 14)
 
     Returns
     Valeur du RSI de chaque période, c'est à dire une valeur comprise entre 0 et 100
@@ -104,77 +104,89 @@ def RSI (date,prix,periode):
 
     """
     
-    if  periode == 14 or periode == 9: 
-         # lsite de la forme : elem 0 : date milieu période, valeur 1 : moyenne mobile de la période 
-        if len(date) % periode != 0 : 
+    if  periode == 14 or periode == 9:
+         # lsite de la forme : elem 0 : date milieu période, valeur 1 : moyenne mobile de la période
+        if len(date) % periode != 0 :
             
-            for i in range (0,len(date) - 2*periode , 2*periode) : 
+            res_date = []
+            res_RSI = []
+            
+            for i in range (0,len(date) - 2*periode , 2*periode) :
                 
-                moyenne_haut = 0 
-                moyenne_bas = 0 
+                moyenne_haut = 0
+                moyenne_bas = 0
                 coef_haut =  0
-                coef_bas = 0 
-                somme_haut = 0 
-                somme_bas = 0 
+                coef_bas = 0
+                somme_haut = 0
+                somme_bas = 0
                 
-                elem_milieu = periode // 2 
-                date_considere = []
+                elem_milieu = periode // 2
+
                 
-                date.append(date[i + elem_milieu])
+                res_date.append(date[i + elem_milieu])
                 
-                for j in range (2*periode-1) : 
+                for j in range (2*periode-1) :
                         
                     if prix[-2*periode+i+j] > prix[-2*periode+i+1+j] :
                             
-                        coef_haut +=  1 
-                        somme_haut += prix[-2*periode+i+j] 
+                        coef_haut +=  1
+                        somme_haut += prix[-2*periode+i+j]
                             
                     elif prix[-2*periode+i+j] < prix[-2*periode+i+1+j] :
                             
                         coef_bas += 1
-                        somme_bas += prix[-2*periode+i+j] 
+                        somme_bas += prix[-2*periode+i+j]
                     
-                moyenne_haut =  somme_haut/coef_haut
-                moyenne_bas = somme_bas/coef_bas 
+                if coef_haut != 0 and coef_bas != 0 :  
+                    moyenne_haut =  somme_haut/coef_haut
+                    moyenne_bas = somme_bas/coef_bas
+                    RSI = 100 - 100/(1 + abs(moyenne_haut)/abs(moyenne_bas))  
                     
-                RSI = 100 - 100/(1 + abs(moyenne_haut)/abs(moyenne_bas))
+                    res_RSI.append(RSI)
             
-            # elements restants ne formants pas une périodes complète 
+            # elements restants ne formants pas une périodes complète
             
-            if len(prix) % periode != 0 :
-                
-                dernier_elem = len(prix) % 2*periode
-                moyenne_haut = 1
-                moyenne_bas = 1
-                coef_haut =  1
-                coef_bas = 1
-                somme_haut = 1
-                somme_bas = 1
-                
-                date_considere.append(date[len(date) - 1])
-                
-                for i in range (dernier_elem) : 
+            dernier_elem = len(date) % 2*periode
+            moyenne_haut = 0
+            moyenne_bas = 0
+            coef_haut =  0
+            coef_bas = 0
+            somme_haut = 0
+            somme_bas = 0
+            
+            res_date.append(date[len(date) - 1])
+            
+            for i in range (dernier_elem) :
+                    
+                if prix[-2*periode+i] > prix[-2*periode+i+1] :
                         
-                    if prix[-2*periode+i] > prix[-2*periode+i+1] :
-                            
-                        coef_haut +=  1 
-                        somme_haut += prix[-2*periode+i] 
-                            
-                    elif prix[-2*periode+i] < prix[-2*periode+i+1] :
-                            
-                        coef_bas += 1
-                        somme_bas += prix[-2*periode+i] 
-                    
+                    coef_haut +=  1
+                    somme_haut += prix[-2*periode+i]
+                        
+                elif prix[-2*periode+i] < prix[-2*periode+i+1] :
+                        
+                    coef_bas += 1
+                    somme_bas += prix[-2*periode+i]
+                
+            if coef_haut != 0 and coef_bas != 0:
                 moyenne_haut =  somme_haut/coef_haut
-                moyenne_bas = somme_bas/coef_bas 
-                    
+                moyenne_bas = somme_bas/coef_bas  
                 RSI = 100 - 100/(1 + abs(moyenne_haut)/abs(moyenne_bas))
                 
-            return RSI, date_considere 
+                res_RSI.append(RSI)
+                
+            if len(res_date) > len(res_RSI) : 
+                res_date.pop(len(res_date)-1)
+                
+            return res_date, res_RSI
+    
+        else :
+            
+            return ("mauvaise période")
     
 def volume_trace(date,volume) : 
     """
-    Permet de representer les volumes d'échanges par joue
+    Permet de representer les volumes d'échanges par jour
     """ 
     
     plt.bar(date, volume)

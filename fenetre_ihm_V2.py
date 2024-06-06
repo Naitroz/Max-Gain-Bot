@@ -18,6 +18,8 @@ import time
 from test_mgb import Action
 import fonctions as fct
 import moyenne_qui_marche as mb
+from datetime import datetime
+from porte_feuille import DonneesActions
 
 
 
@@ -35,14 +37,17 @@ class FenetrePrincipale(tk.Tk):
         self.geometry("500x600")
         self.liste_actions = ["AAPL","AMZN","GOOGL","FB","MSFT","TSLA","V"]
         self.date = []
+        self.liste_periode = ["1d","5d","1mo","3mo","6mo","1y","2y","5y","10y","ytd","max"]
         self.valeurs = []
         self.volume = []
         self.ordonnees_ind = []
         self.abscisses_ind = []
         self.conseil = "Investir !"
         self.date1 = []
+        self.date_entree = ""
+        self.date_sortie = ""
         self.fiabilite = 0
-        self.periode = 0
+        self.periode = "1mo"
         self.temporalite = "jour"
         self.action_choisie = ""
         self.creer_widget()
@@ -63,16 +68,22 @@ class FenetrePrincipale(tk.Tk):
         """
 
         #création du widget de sélection de l'action
-        self.Combo = ttk.Combobox(self, values = self.liste_actions)
-        self.Combo.set("Pick an Action")
-        self.Combo.grid(row = 0, column = 0)
-        self.Combo.bind("<<ComboboxSelected>>", self.choix_action)
+        self.Combo1 = ttk.Combobox(self, values = self.liste_actions)
+        self.Combo1.set("Pick an Action")
+        self.Combo1.grid(row = 0, column = 0)
+        self.Combo1.bind("<<ComboboxSelected>>", self.choix_action)
+        
+        self.Combo2 = ttk.Combobox(self, values = self.liste_periode)
+        self.Combo2.set("Choose a period")
+        self.Combo2.grid(row = 2, column = 0)
+        self.Combo2.bind("<<ComboboxSelected>>", self.choix_periode)
         
         
 
         #création des widgets boutons
         self.bouton1 = tk.Button(self, text = "Mon porte-feuille")
         self.bouton1.grid(row = 0,column = 2)
+        self.bouton1.bind('<Button-1>', self.activation_porte_feuille)
 
         self.bouton2 = tk.Button(self, text = "Acheter")
         self.bouton2.grid(row = 6,columnspan = 2)
@@ -81,7 +92,7 @@ class FenetrePrincipale(tk.Tk):
         self.bouton3.grid(row = 7,column = 0, columnspan = 2)
 
         self.bouton4 = tk.Button(self, text = "Choisir")
-        self.bouton4.grid(row = 3,column = 2)
+        self.bouton4.grid(row = 4,column = 2)
         self.bouton4.bind('<Button-1>', self.choix_indicateur)
 
         self.bouton5 = tk.Button(self, text = "Actualiser")
@@ -93,8 +104,16 @@ class FenetrePrincipale(tk.Tk):
         self.saisie1.grid(row= 5, column = 1)
 
         self.saisie2 = tk.Entry(self)
-        self.saisie2.grid(row= 2, column = 2)
+        self.saisie2.grid(row= 3, column = 2)
         self.saisie2.insert(0,"Paramètre indicateur")
+        
+        self.saisie3 = tk.Entry(self)
+        self.saisie3.grid(row= 2, column = 1)
+        self.saisie3.insert(0,"date entrée")
+        
+        self.saisie4 = tk.Entry(self)
+        self.saisie4.grid(row= 2, column = 2)
+        self.saisie4.insert(0,"date sortie")
 
         #création des widgets de label
         self.label1 = tk.Label(self, text = "Quantité : ")
@@ -124,21 +143,23 @@ class FenetrePrincipale(tk.Tk):
 
         #création des radiobuttons
         self.radio1 = tk.Radiobutton(self, text= "Moyenne mobile", variable=self.choix, value="Moyenne mobile")
-        self.radio1.grid(row= 2, column = 0)
+        self.radio1.grid(row= 3, column = 0)
         self.radio2 = tk.Radiobutton(self, text="Moyenne mobile exp", variable=self.choix, value="Moyenne mobile exp")
-        self.radio2.grid(row = 2, column = 1)       
+        self.radio2.grid(row = 3, column = 1)       
         self.radio3 = tk.Radiobutton(self, text="RSI", variable=self.choix, value="RSI")
-        self.radio3.grid(row = 3, column = 0)
+        self.radio3.grid(row = 4, column = 0)
         self.radio4 = tk.Radiobutton(self, text="Volume", variable=self.choix, value="Volume")
-        self.radio4.grid(row = 3, column = 1)
+        self.radio4.grid(row = 4, column = 1)
         
     def choix_action (self, event) :
         
         self.date = []
         self.valeurs = []
-        self.action_choisie = self.Combo.get()
+        self.ordonnees_ind = []
+        self.abscisses_ind = []
+        self.action_choisie = self.Combo1.get()
         print(self.action_choisie)
-        donnees_action = Action(self.action_choisie, "1mo")
+        donnees_action = Action(self.action_choisie, self.periode)
         for i in range(len(donnees_action.dates)) :
             self.date.append(donnees_action.dates[i]) 
             self.date.append(donnees_action.dates[i])
@@ -168,9 +189,14 @@ class FenetrePrincipale(tk.Tk):
         elif self.choix.get() == "RSI" :
             self.periode = int(self.saisie2.get())
             self.abscisses_ind, self.ordonnees_ind = fct.RSI (self.date, self.valeurs, self.periode)
-         
+            if len(self.abscisses_ind) > len(self.ordonnees_ind) : 
+                self.abscisses_ind.pop(len(self.abscisses_ind)-1)
+                
         elif self.choix.get() == "Volume" :
             fct.volume_trace(self.date1, self.volume)
+            
+        if self.saisie3.get != "date entrée" and self.saisie4.get != "date sortie" :
+            self.zoom()
             
         self.actualiser(event)
             
@@ -192,6 +218,7 @@ class FenetrePrincipale(tk.Tk):
         self.figure = plt.Figure(figsize=(5, 4), dpi=100)
         self.ax = self.figure.add_subplot(111)
         self.ax.plot(self.date, self.valeurs)
+        self.figure.autofmt_xdate(rotation=45)
         self.ax2 = self.ax.twinx()
         self.ax2.plot(self.abscisses_ind,self.ordonnees_ind, 'r--')
         self.ax.set_xlabel(f'Date ({self.temporalite})')
@@ -220,7 +247,7 @@ class FenetrePrincipale(tk.Tk):
         
         while True :
             self.actualiser("")
-            time.sleep(60) #attend une minute
+            time.sleep(180) #attend une minute
 
     def message_indicateur(self) :
         message_prec = ""
@@ -245,10 +272,47 @@ class FenetrePrincipale(tk.Tk):
                 
             time.sleep(0.01)
             
-    
-            
+    def choix_periode(self, event) :
+        self.periode = self.Combo2.get()
+        self.choix_action("")
+        self.actualiser()
         
-
+        
+    def zoom(self) :        
+        self.date = []
+        self.valeurs = []
+        etat = 1
+        self.date_entree = self.saisie3.get()
+        self.date_sortie = self.saisie4.get()
+        donnees_action = Action(self.action_choisie, "max")
+        for i in range (len(donnees_action.dates)) :
+            if etat == 2 :
+                self.date.append(donnees_action.dates[i]) 
+                self.date.append(donnees_action.dates[i])
+                self.valeurs.append(donnees_action.val_open[i]) 
+                self.valeurs.append(donnees_action.val_close[i])
+            if self.date_entree == f"{donnees_action.dates[i].day}/{donnees_action.dates[i].month}/{donnees_action.dates[i].year}" :
+                etat = 2
+                self.date.append(donnees_action.dates[i]) 
+                self.date.append(donnees_action.dates[i])
+                self.valeurs.append(donnees_action.val_open[i]) 
+                self.valeurs.append(donnees_action.val_close[i])
+            if self.date_sortie ==  f"{donnees_action.dates[i].day}/{donnees_action.dates[i].month}/{donnees_action.dates[i].year}" :
+                etat = 3
+                
+        if etat == 1 :
+            messagebox.showerror("Erreur", "Les dates doivent être au format jj/mm/aaaa ou le marché est fermé à cette date")
+        if etat == 2 :
+            messagebox.showerror("Erreur", "La date de sortie doit être au format jj/mm/aaaa ou le marché est fermé à cette date")
+        else :
+            self.actualiser("")
+            
+    def activation_porte_feuille (self, event) :
+        app = DonneesActions()
+        app.mainloop()
+        
+        
+                
 
 
 

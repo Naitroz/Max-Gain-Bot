@@ -1,4 +1,12 @@
 ident,nom,nombre,prix,date
-AAPL,Apple Inc.,100,150,01/01/2023
-GOOGL,Alphabet Inc.,50,2000,01/01/2023
-MSFT,Microsoft Corporation,75,250,01/01/2023
+AAPL,Apple Inc.,70,150.0,01/01/2023
+AAPL,Apple Inc.,100,100.0,04/06/2024
+AAPL,Apple Inc.,100,45.0,04/06/2024
+AAPL,Apple Inc.,30,100.0,16/07/2003
+AAPL,Apple Inc.,100,1.0,16/09/2024
+AAPL,Apple Inc.,19,23.0,10/07/2024
+GOOGL,Alphabet Inc.,50,2000.0,01/01/2023
+MSFT,Microsoft Corporation,75,250.0,01/01/2023
+DIS, The Walt Disney Company,30,54.0,16/07/2024
+DIS, The Walt Disney Company,100,54.0,16/08/2024
+BA, The Boeing Company,100,100.0,16/07/2024
