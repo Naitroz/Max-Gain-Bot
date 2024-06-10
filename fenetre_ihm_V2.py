@@ -19,7 +19,7 @@ from test_mgb import Action
 import fonctions as fct
 import moyenne_qui_marche as mb
 from datetime import datetime
-from porte_feuille import DonneesActions
+from version_finale import DonneesActions
 
 
 
@@ -34,7 +34,7 @@ class FenetrePrincipale(tk.Tk):
     def __init__(self):        
         super().__init__()
         self.title("Trading Bot")
-        self.geometry("500x600")
+        self.geometry("500x550")
         self.liste_actions = ["AAPL","AMZN","GOOGL","FB","MSFT","TSLA","V"]
         self.date = []
         self.liste_periode = ["1d","5d","1mo","3mo","6mo","1y","2y","5y","10y","ytd","max"]
@@ -85,11 +85,11 @@ class FenetrePrincipale(tk.Tk):
         self.bouton1.grid(row = 0,column = 2)
         self.bouton1.bind('<Button-1>', self.activation_porte_feuille)
 
-        self.bouton2 = tk.Button(self, text = "Acheter")
-        self.bouton2.grid(row = 6,columnspan = 2)
+        # self.bouton2 = tk.Button(self, text = "Acheter")
+        # self.bouton2.grid(row = 6,columnspan = 2)
 
-        self.bouton3 = tk.Button(self, text = "Vendre")
-        self.bouton3.grid(row = 7,column = 0, columnspan = 2)
+        # self.bouton3 = tk.Button(self, text = "Vendre")
+        # self.bouton3.grid(row = 7,column = 0, columnspan = 2)
 
         self.bouton4 = tk.Button(self, text = "Choisir")
         self.bouton4.grid(row = 4,column = 2)
@@ -98,10 +98,14 @@ class FenetrePrincipale(tk.Tk):
         self.bouton5 = tk.Button(self, text = "Actualiser")
         self.bouton5.bind('<Button-1>',self.actualiser)
         self.bouton5.grid(row = 0,column = 1)
+        
+        self.bouton6 = tk.Button(self, text = "réinitialiser les dates")
+        self.bouton6.grid(row = 6,column = 0)
+        self.bouton6.bind('<Button-1>', self.reinitialiser_dates)
 
         #création des widgets de saisie
-        self.saisie1 = tk.Entry(self)
-        self.saisie1.grid(row= 5, column = 1)
+        # self.saisie1 = tk.Entry(self)
+        # self.saisie1.grid(row= 5, column = 1)
 
         self.saisie2 = tk.Entry(self)
         self.saisie2.grid(row= 3, column = 2)
@@ -109,22 +113,22 @@ class FenetrePrincipale(tk.Tk):
         
         self.saisie3 = tk.Entry(self)
         self.saisie3.grid(row= 2, column = 1)
-        self.saisie3.insert(0,"date entrée")
+        self.saisie3.insert(0,"date entree")
         
         self.saisie4 = tk.Entry(self)
         self.saisie4.grid(row= 2, column = 2)
         self.saisie4.insert(0,"date sortie")
 
         #création des widgets de label
-        self.label1 = tk.Label(self, text = "Quantité : ")
-        self.label1.grid(row = 5,column = 0)
+        # self.label1 = tk.Label(self, text = "Quantité : ")
+        # self.label1.grid(row = 5,column = 0)
 
         self.label2 = tk.Label(self, text = "Conseil : ")
-        self.label2.grid(row = 5,column = 2)
+        self.label2.grid(row = 6,column = 1)
 
 
         self.label3 = tk.Label(self, text = "Fiabilité : ")
-        self.label3.grid(row = 7,column = 2)
+        self.label3.grid(row = 8,column = 1)
 
         self.label4 = tk.Label(self, text = self.conseil, font = "Helvetica 10 bold")
         self.label4.grid(row = 6,column = 2)
@@ -195,10 +199,10 @@ class FenetrePrincipale(tk.Tk):
         elif self.choix.get() == "Volume" :
             fct.volume_trace(self.date1, self.volume)
             
-        if self.saisie3.get != "date entrée" and self.saisie4.get != "date sortie" :
+        if self.saisie3.get() != "date entree" and self.saisie4.get() != "date sortie" :
             self.zoom()
             
-        self.actualiser(event)
+        self.actualiser("")
             
         #else :
             #self.bouton4.config(text = "Rechoisir")
@@ -275,7 +279,7 @@ class FenetrePrincipale(tk.Tk):
     def choix_periode(self, event) :
         self.periode = self.Combo2.get()
         self.choix_action("")
-        self.actualiser()
+        self.actualiser("")
         
         
     def zoom(self) :        
@@ -284,7 +288,7 @@ class FenetrePrincipale(tk.Tk):
         etat = 1
         self.date_entree = self.saisie3.get()
         self.date_sortie = self.saisie4.get()
-        donnees_action = Action(self.action_choisie, "max")
+        donnees_action = Action(self.action_choisie, "5y")
         for i in range (len(donnees_action.dates)) :
             if etat == 2 :
                 self.date.append(donnees_action.dates[i]) 
@@ -306,14 +310,21 @@ class FenetrePrincipale(tk.Tk):
             messagebox.showerror("Erreur", "La date de sortie doit être au format jj/mm/aaaa ou le marché est fermé à cette date")
         else :
             self.actualiser("")
+            print("aaaaa")
             
     def activation_porte_feuille (self, event) :
         app = DonneesActions()
         app.mainloop()
         
+    def reinitialiser_dates(self,event) :
+        if self.saisie3.get() != "date entree" and self.saisie4.get() != "date sortie" :
+            self.saisie3.delete(0,tk.END)
+            self.saisie4.delete(0,tk.END)
+            self.saisie3.insert(0,"date entree")
+            self.saisie4.insert(0,"date sortie")
+            self.choix_action("")
         
-                
-
+        
 
 
 app = FenetrePrincipale()
