@@ -18,8 +18,8 @@ import time
 from test_mgb import Action
 import fonctions as fct
 import moyenne_qui_marche as mb
-from datetime import datetime
 from version_finale import DonneesActions
+from datetime import datetime
 
 
 
@@ -34,7 +34,7 @@ class FenetrePrincipale(tk.Tk):
     def __init__(self):        
         super().__init__()
         self.title("Trading Bot")
-        self.geometry("500x550")
+        self.geometry("500x560")
         self.liste_actions = ["AAPL","AMZN","GOOGL","FB","MSFT","TSLA","V"]
         self.date = []
         self.liste_periode = ["1d","5d","1mo","3mo","6mo","1y","2y","5y","10y","ytd","max"]
@@ -63,8 +63,8 @@ class FenetrePrincipale(tk.Tk):
     def creer_widget(self) :       
         """
         Permet de créer les différents widgets qui figurent dans l'interface utilisateur (IHM)
-        args : 
-        return : 
+        args : aucun
+        return : auncun
         """
 
         #création du widget de sélection de l'action
@@ -99,9 +99,13 @@ class FenetrePrincipale(tk.Tk):
         self.bouton5.bind('<Button-1>',self.actualiser)
         self.bouton5.grid(row = 0,column = 1)
         
-        self.bouton6 = tk.Button(self, text = "réinitialiser les dates")
+        self.bouton6 = tk.Button(self, text = "Reinitialiser les dates")
         self.bouton6.grid(row = 6,column = 0)
         self.bouton6.bind('<Button-1>', self.reinitialiser_dates)
+        
+        self.bouton7 = tk.Button(self, text = "Scanner la courbe")
+        self.bouton7.grid(row = 8,column = 0)
+        self.bouton7.bind('<Button-1>', self.scan_courbe)
 
         #création des widgets de saisie
         # self.saisie1 = tk.Entry(self)
@@ -109,7 +113,7 @@ class FenetrePrincipale(tk.Tk):
 
         self.saisie2 = tk.Entry(self)
         self.saisie2.grid(row= 3, column = 2)
-        self.saisie2.insert(0,"Paramètre indicateur")
+        self.saisie2.insert(0,"Parametre indicateur")
         
         self.saisie3 = tk.Entry(self)
         self.saisie3.grid(row= 2, column = 1)
@@ -156,6 +160,11 @@ class FenetrePrincipale(tk.Tk):
         self.radio4.grid(row = 4, column = 1)
         
     def choix_action (self, event) :
+        """
+        Permet de charger les données de l'action choisie par l'utilisateur selon la période renseignée
+        args : auncun
+        return : auncun
+        """
         
         self.date = []
         self.valeurs = []
@@ -177,7 +186,12 @@ class FenetrePrincipale(tk.Tk):
         self.volume = donnees_action.val_volume
         self.actualiser("")
         
-    def choix_indicateur (self,event) :        
+    def choix_indicateur (self,event) :   
+        """
+        Permet d'opérer l'indicateur choisie par l'utilisateur grâce aux radiobuttons
+        args : auncun
+        return : auncun
+        """
                 
         if self.choix.get() == "Moyenne mobile" :
             self.periode = int(self.saisie2.get())
@@ -214,9 +228,9 @@ class FenetrePrincipale(tk.Tk):
 
     def afficher_courbe(self) :
         """
-        Permet d'afficher une courbe matplotlib sur la base d'une liste de valeurs et de temps propre à l'action choisie
-        args : 
-        return : 
+        Permet d'afficher une courbe matplotlib sur la base d'une liste de valeurs et de temps propre à l'action et à la période choisie 
+        args : auncun
+        return : auncun
         """
         #création de la courbe matplotlib
         self.figure = plt.Figure(figsize=(5, 4), dpi=100)
@@ -234,18 +248,18 @@ class FenetrePrincipale(tk.Tk):
     def actualiser(self,event) :
         """
         Permet d'actualiser la courbe de données en mettant à jour les listes de valeurs 
-        et de temps de l'action puis d'afficher la courbe en conséquence
-        args :
-        return : 
+        et de temps de l'action puis en affichant la courbe en conséquence
+        args : auncun
+        return : auncun
         """
 
         self.afficher_courbe()
 
     def actualisation_periodique(self) :
         """
-        Permet l'actualisation toutes les minutes de la courbe de données
-        args :
-        return :
+        Permet l'actualisation toutes les 3 minutes de la courbe de données
+        args : auncun
+        return : auncun
         """
         
         
@@ -254,6 +268,12 @@ class FenetrePrincipale(tk.Tk):
             time.sleep(180) #attend une minute
 
     def message_indicateur(self) :
+        """
+        Permet d'afficher un message adapté à l'indicateur choisie par l'utilisateur
+        afin de le guider dans l'écriture d'un paramètre ou d'un coefficient associé
+        args : auncun
+        return : auncun
+        """
         message_prec = ""
         while True :
             message = self.choix.get()
@@ -277,19 +297,57 @@ class FenetrePrincipale(tk.Tk):
             time.sleep(0.01)
             
     def choix_periode(self, event) :
+        """
+        Permet de mettre à jour la période de données voulue par l'utilisateur (ex. : 5 jours, 1 mois, 5 ans...)
+        args : auncun
+        return : auncun
+        """
         self.periode = self.Combo2.get()
         self.choix_action("")
         self.actualiser("")
         
         
     def zoom(self) :        
+        """
+        Permet de zoomer sur une période de données précise renseignée par l'utilisateur
+        args : auncun
+        return : auncun
+        """
         self.date = []
         self.valeurs = []
         etat = 1
         self.date_entree = self.saisie3.get()
         self.date_sortie = self.saisie4.get()
-        donnees_action = Action(self.action_choisie, "5y")
-        for i in range (len(donnees_action.dates)) :
+        if self.date_entree[3] == "0":
+            self.date_entree = self.date_entree[0:3] + self.date_entree[4:]
+        if self.date_sortie[3] == "0":
+            self.date_sortie = self.date_sortie[0:3] + self.date_sortie[4:]
+        if self.date_entree[0] == "0":
+            self.date_entree = self.date_entree[1:]
+        if self.date_sortie[0] == "0":
+            self.date_sortie = self.date_sortie[1:]
+        liste_date_entree = self.date_entree.split("/")
+        date_entree_comparaison = datetime.date(int(liste_date_entree[2]),int(liste_date_entree[1]),int(liste_date_entree[0]))
+        if date_entree_comparaison > datetime.date.today() - datetime.timedelta(days = 5):
+            donnees_action = Action(self.action_choisie, "5d")
+        elif date_entree_comparaison > datetime.date.today() - datetime.timedelta(days = 28):
+            donnees_action = Action(self.action_choisie, "1mo")
+        elif date_entree_comparaison > datetime.date.today() - datetime.timedelta(days = 89):
+            donnees_action = Action(self.action_choisie, "3mo")
+        elif date_entree_comparaison > datetime.date.today() - datetime.timedelta(days = 181):
+            donnees_action = Action(self.action_choisie, "6mo")
+        elif date_entree_comparaison > datetime.date.today() - datetime.timedelta(days = 365):
+            donnees_action = Action(self.action_choisie, "1y")
+        elif date_entree_comparaison > datetime.date.today() - datetime.timedelta(days = 2*365):
+            donnees_action = Action(self.action_choisie, "2y")
+        elif date_entree_comparaison > datetime.date.today() - datetime.timedelta(days = 5*365):
+            donnees_action = Action(self.action_choisie, "5y")
+        elif date_entree_comparaison > datetime.date.today() - datetime.timedelta(days = 10*365):
+            donnees_action = Action(self.action_choisie, "10y")
+        else:
+            donnees_action = Action(self.action_choisie, "max")
+        i = 0
+        while etat != 3 and i < len(donnees_action.dates)-1 :
             if etat == 2 :
                 self.date.append(donnees_action.dates[i]) 
                 self.date.append(donnees_action.dates[i])
@@ -303,20 +361,61 @@ class FenetrePrincipale(tk.Tk):
                 self.valeurs.append(donnees_action.val_close[i])
             if self.date_sortie ==  f"{donnees_action.dates[i].day}/{donnees_action.dates[i].month}/{donnees_action.dates[i].year}" :
                 etat = 3
-                
+            i += 1
         if etat == 1 :
             messagebox.showerror("Erreur", "Les dates doivent être au format jj/mm/aaaa ou le marché est fermé à cette date")
         if etat == 2 :
             messagebox.showerror("Erreur", "La date de sortie doit être au format jj/mm/aaaa ou le marché est fermé à cette date")
         else :
             self.actualiser("")
-            print("aaaaa")
+        
+        
+    # def zoom(self) :        
+    #     self.date = []
+    #     self.valeurs = []
+    #     etat = 1
+    #     self.date_entree = self.saisie3.get()
+    #     self.date_sortie = self.saisie4.get()
+    #     donnees_action = Action(self.action_choisie, "5y")
+    #     for i in range (len(donnees_action.dates)) :
+    #         if etat == 2 :
+    #             self.date.append(donnees_action.dates[i]) 
+    #             self.date.append(donnees_action.dates[i])
+    #             self.valeurs.append(donnees_action.val_open[i]) 
+    #             self.valeurs.append(donnees_action.val_close[i])
+    #         if self.date_entree == f"{donnees_action.dates[i].day}/{donnees_action.dates[i].month}/{donnees_action.dates[i].year}" :
+    #             etat = 2
+    #             self.date.append(donnees_action.dates[i]) 
+    #             self.date.append(donnees_action.dates[i])
+    #             self.valeurs.append(donnees_action.val_open[i]) 
+    #             self.valeurs.append(donnees_action.val_close[i])
+    #         if self.date_sortie ==  f"{donnees_action.dates[i].day}/{donnees_action.dates[i].month}/{donnees_action.dates[i].year}" :
+    #             etat = 3
+                
+    #     if etat == 1 :
+    #         messagebox.showerror("Erreur", "Les dates doivent être au format jj/mm/aaaa ou le marché est fermé à cette date")
+    #     if etat == 2 :
+    #         messagebox.showerror("Erreur", "La date de sortie doit être au format jj/mm/aaaa ou le marché est fermé à cette date")
+    #     else :
+    #         self.actualiser("")
+    #         print("aaaaa")
             
     def activation_porte_feuille (self, event) :
+        """
+        Permet de lancer la classe porte-feuille en créant une instance
+        args : auncun
+        return : auncun
+        """
         app = DonneesActions()
         app.mainloop()
         
     def reinitialiser_dates(self,event) :
+        """
+        Permet de réinitialiser les paramètres de dates éventuellement modifiés par l'utilisateur lors d'un zoom
+        en reprenant les dates originales 
+        args : auncun
+        return : auncun
+        """
         if self.saisie3.get() != "date entree" and self.saisie4.get() != "date sortie" :
             self.saisie3.delete(0,tk.END)
             self.saisie4.delete(0,tk.END)
@@ -324,6 +423,8 @@ class FenetrePrincipale(tk.Tk):
             self.saisie4.insert(0,"date sortie")
             self.choix_action("")
         
+    def scan_courbe(self,event) :
+        ""
         
 
 
